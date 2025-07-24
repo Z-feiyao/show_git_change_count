@@ -9,6 +9,7 @@ export interface GitChangeInfo {
   added: number;
   deleted: number;
   renamed: number;
+  untracked: number;
   total: number;
 }
 
@@ -17,7 +18,7 @@ export class GitChangeCountProvider {
   private updateTimeout: NodeJS.Timeout | undefined;
   private statusBarItem: vscode.StatusBarItem | undefined;
   private intervalTimer: NodeJS.Timeout | undefined;
-  private lastChangeInfo: GitChangeInfo = { modified: 0, added: 0, deleted: 0, renamed: 0, total: 0 };
+  private lastChangeInfo: GitChangeInfo = { modified: 0, added: 0, deleted: 0, renamed: 0, untracked: 0, total: 0 };
 
   async activate(context: vscode.ExtensionContext): Promise<void> {
     
@@ -205,6 +206,10 @@ export class GitChangeCountProvider {
           parts.push(`R:${changeInfo.renamed}`);
           tooltipParts.push(`重命名: ${changeInfo.renamed}`);
         }
+        if (changeInfo.untracked > 0) {
+          parts.push(`U:${changeInfo.untracked}`);
+          tooltipParts.push(`未暂存: ${changeInfo.untracked}`);
+        }
         
         displayText = `$(git-branch) ${parts.join(' ')}`;
         tooltipText = `Git 变更详情:\n${tooltipParts.join('\n')}\n\n总计: ${count} 个文件`;
@@ -223,13 +228,14 @@ export class GitChangeCountProvider {
   private async getGitChangeInfo(): Promise<GitChangeInfo> {
     const workspaceFolders = vscode.workspace.workspaceFolders;
     if (!workspaceFolders || workspaceFolders.length === 0) {
-      return { modified: 0, added: 0, deleted: 0, renamed: 0, total: 0 };
+      return { modified: 0, added: 0, deleted: 0, renamed: 0, untracked: 0, total: 0 };
     }
 
     let totalModified = 0;
     let totalAdded = 0;
     let totalDeleted = 0;
     let totalRenamed = 0;
+    let totalUntracked = 0;
 
     for (const folder of workspaceFolders) {
       try {
@@ -238,6 +244,7 @@ export class GitChangeCountProvider {
         totalAdded += info.added;
         totalDeleted += info.deleted;
         totalRenamed += info.renamed;
+        totalUntracked += info.untracked;
       } catch (error) {
         console.warn(`获取文件夹 ${folder.name} 的 Git 变更信息失败:`, error);
       }
@@ -248,7 +255,8 @@ export class GitChangeCountProvider {
       added: totalAdded,
       deleted: totalDeleted,
       renamed: totalRenamed,
-      total: totalModified + totalAdded + totalDeleted + totalRenamed
+      untracked: totalUntracked,
+      total: totalModified + totalAdded + totalDeleted + totalRenamed + totalUntracked
     };
   }
 
@@ -257,24 +265,25 @@ export class GitChangeCountProvider {
       // 检查是否为 Git 仓库
       await execAsync('git rev-parse --git-dir', { cwd: folderPath });
     } catch {
-      return { modified: 0, added: 0, deleted: 0, renamed: 0, total: 0 };
+      return { modified: 0, added: 0, deleted: 0, renamed: 0, untracked: 0, total: 0 };
     }
 
     try {
-      // 获取所有变更的文件
+      // 获取所有变更的文件（包括未暂存的文件）
       const { stdout } = await execAsync(
-        'git status --porcelain',
+        'git status --porcelain --ignored',
         { cwd: folderPath }
       );
 
       if (!stdout.trim()) {
-        return { modified: 0, added: 0, deleted: 0, renamed: 0, total: 0 };
+        return { modified: 0, added: 0, deleted: 0, renamed: 0, untracked: 0, total: 0 };
       }
 
       let modified = 0;
       let added = 0;
       let deleted = 0;
       let renamed = 0;
+      let untracked = 0;
 
       const lines = stdout.split('\n').filter(line => line.trim());
 
@@ -283,8 +292,16 @@ export class GitChangeCountProvider {
           const status = line.substring(0, 2);
           const filePath = line.substring(3).trim();
 
+          // 跳过被忽略的文件
+          if (status === '!!') {
+            continue;
+          }
+
           if (filePath.includes(' -> ')) {
             renamed++;
+          } else if (status === '??') {
+            // 未跟踪的文件
+            untracked++;
           } else if (status.includes('M')) {
             modified++;
           } else if (status.includes('A')) {
@@ -300,11 +317,12 @@ export class GitChangeCountProvider {
         added,
         deleted,
         renamed,
-        total: modified + added + deleted + renamed
+        untracked,
+        total: modified + added + deleted + renamed + untracked
       };
     } catch (error) {
       console.error(`执行 git status 失败:`, error);
-      return { modified: 0, added: 0, deleted: 0, renamed: 0, total: 0 };
+      return { modified: 0, added: 0, deleted: 0, renamed: 0, untracked: 0, total: 0 };
     }
   }
 
