@@ -1,0 +1,87 @@
+{
+  "name": "show-git-change-count",
+  "displayName": "Show Git Change Count",
+  "description": "在源代码管理图标上显示 git 变更的文件数量",
+  "version": "0.0.1",
+  "engines": {
+    "vscode": "^1.74.0"
+  },
+  "categories": [
+    "SCM Providers"
+  ],
+  "activationEvents": [
+    "onStartupFinished"
+  ],
+  "main": "./out/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "show-git-change-count.refresh",
+        "title": "刷新 Git 变更数量"
+      },
+      {
+        "command": "show-git-change-count.test",
+        "title": "测试 Git 变更数量插件"
+      },
+      {
+        "command": "show-git-change-count.immediate-check",
+        "title": "立即检查 Git 变更数量"
+      }
+    ],
+    "configuration": {
+      "title": "Show Git Change Count",
+      "properties": {
+        "showGitChangeCount.enabled": {
+          "type": "boolean",
+          "default": true,
+          "description": "是否启用 Git 变更数量显示"
+        },
+        "showGitChangeCount.showDetails": {
+          "type": "boolean",
+          "default": true,
+          "description": "是否显示详细的变更类型（修改、新增、删除等）"
+        },
+        "showGitChangeCount.updateInterval": {
+          "type": "number",
+          "default": 500,
+          "minimum": 100,
+          "maximum": 5000,
+          "description": "更新间隔（毫秒）"
+        },
+        "showGitChangeCount.position": {
+          "type": "string",
+          "enum": ["left", "right"],
+          "default": "left",
+          "description": "状态栏显示位置"
+        },
+        "showGitChangeCount.showWhenZero": {
+          "type": "boolean",
+          "default": true,
+          "description": "当没有变更时是否显示状态栏"
+        }
+      }
+    }
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "test": "node ./out/test/runTest.js"
+  },
+  "devDependencies": {
+    "@types/vscode": "^1.74.0",
+    "@types/node": "16.x",
+    "typescript": "^4.9.4"
+  },
+  "publisher": "your-publisher-name",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/your-username/show-git-change-count.git"
+  },
+  "keywords": [
+    "git",
+    "scm",
+    "source control",
+    "change count"
+  ]
+} 
