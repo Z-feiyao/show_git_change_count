@@ -142,7 +142,7 @@ npm run watch
 
 ### 打包步骤
 
-1. **编译代码**
+1. **编译代码（可选）**
    ```bash
    npm run compile
    ```

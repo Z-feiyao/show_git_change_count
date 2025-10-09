@@ -2,7 +2,7 @@
   "name": "show-git-change-count",
   "displayName": "Show Git Change Count",
   "description": "在源代码管理图标上显示 git 变更的文件数量",
-  "version": "0.0.1",
+  "version": "0.0.3",
   "engines": {
     "vscode": "^1.74.0"
   },
@@ -18,14 +18,6 @@
       {
         "command": "show-git-change-count.refresh",
         "title": "刷新 Git 变更数量"
-      },
-      {
-        "command": "show-git-change-count.test",
-        "title": "测试 Git 变更数量插件"
-      },
-      {
-        "command": "show-git-change-count.immediate-check",
-        "title": "立即检查 Git 变更数量"
       }
     ],
     "configuration": {
@@ -43,10 +35,10 @@
         },
         "showGitChangeCount.updateInterval": {
           "type": "number",
-          "default": 500,
-          "minimum": 100,
-          "maximum": 5000,
-          "description": "更新间隔（毫秒）"
+          "default": 2000,
+          "minimum": 1000,
+          "maximum": 10000,
+          "description": "文件变化防抖延迟（毫秒）- 文件变化后等待多长时间再更新状态"
         },
         "showGitChangeCount.position": {
           "type": "string",
