@@ -1,6 +1,7 @@
 # Show Git Change Count
 
 一个 Cursor 专用的插件，用于在状态栏显示 Git 变更的文件数量。
+<img width="201" height="34" alt="image" src="https://github.com/user-attachments/assets/8d6a5f88-3552-4a09-83bc-867db2dff682" />
 
 ## 功能特性
 
